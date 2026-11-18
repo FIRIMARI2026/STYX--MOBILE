@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STYX MOBILE - Ultra Realistic Edition</title>
+    <title>STYX MOBILE - Battle Royale Edition</title>
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #020617; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -24,16 +24,30 @@
             color: #000; font-size: 24px; font-weight: 900; padding: 20px 60px;
             border: none; border-radius: 8px; cursor: pointer; letter-spacing: 2px;
             box-shadow: 0 0 35px rgba(245, 158, 11, 0.7); text-transform: uppercase;
-            transition: transform 0.1s;
         }
         .btn-start:active { transform: scale(0.95); }
         .hidden { display: none !important; }
 
-        /* HUD */
+        /* HUD & RADAR */
         #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .hud-top { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .stat-card { background: rgba(0, 0, 0, 0.7); border-left: 4px solid #f59e0b; padding: 8px 16px; color: #fff; font-weight: bold; font-size: 15px; backdrop-filter: blur(6px); border-radius: 0 6px 6px 0; }
-        .stat-card span { color: #f59e0b; font-size: 20px; margin-left: 6px; }
+        .hud-top { position: absolute; top: 15px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .stats-group { display: flex; gap: 10px; }
+        .stat-card { background: rgba(0, 0, 0, 0.7); border-left: 4px solid #f59e0b; padding: 8px 14px; color: #fff; font-weight: bold; font-size: 14px; backdrop-filter: blur(6px); border-radius: 0 6px 6px 0; }
+        .stat-card span { color: #f59e0b; font-size: 18px; margin-left: 5px; }
+
+        #minimap {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid rgba(245, 158, 11, 0.8); background: rgba(15, 23, 42, 0.85);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        /* ZONE WARNING */
+        #zone-warning {
+            position: absolute; top: 65px; left: 20px; background: rgba(37, 99, 235, 0.85);
+            color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: bold;
+            border-left: 4px solid #60a5fa; animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* CROSSHAIR & SCOPE */
         #crosshair {
@@ -47,338 +61,4 @@
 
         #scope-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 26%, rgba(2, 6, 23, 0.98) 30%);
-            pointer-events: none; z-index: 8;
-        }
-        #scope-overlay::before, #scope-overlay::after { content: ''; position: absolute; background: rgba(239, 68, 68, 0.8); }
-        #scope-overlay::before { top: 50%; left: 15%; width: 70%; height: 1px; }
-        #scope-overlay::after { left: 50%; top: 15%; width: 1px; height: 70%; }
-
-        /* BOTTOM HUD */
-        .bottom-center {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-        }
-        .weapons-bar { display: flex; gap: 10px; pointer-events: auto; }
-        .weapon-slot {
-            background: rgba(15, 23, 42, 0.85); border: 2px solid #475569; color: #cbd5e1;
-            padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
-        }
-        .weapon-slot.active { border-color: #f59e0b; color: #f59e0b; background: rgba(245, 158, 11, 0.2); }
-        .hp-box { width: 300px; background: rgba(0, 0, 0, 0.8); padding: 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2); }
-        .hp-fill { width: 100%; height: 14px; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 3px; transition: width 0.2s; }
-        .hp-label { color: #fff; font-size: 11px; font-weight: bold; text-align: center; margin-top: 3px; }
-
-        /* TOUCH CONTROLS */
-        .joystick-zone {
-            position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px;
-            background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%; pointer-events: auto; touch-action: none;
-        }
-        .joystick-thumb {
-            position: absolute; top: 41px; left: 41px; width: 48px; height: 48px;
-            background: rgba(245, 158, 11, 0.85); border-radius: 50%; box-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
-        }
-        #look-zone { position: absolute; top: 0; right: 0; width: 55%; height: 100%; pointer-events: auto; touch-action: none; }
-        .action-btn {
-            position: absolute; border-radius: 50%; pointer-events: auto; display: flex;
-            justify-content: center; align-items: center; color: #fff; font-weight: 900; z-index: 15; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        #fire-btn {
-            bottom: 45px; right: 40px; width: 92px; height: 92px;
-            background: radial-gradient(circle, #ef4444 0%, #991b1b 100%);
-            border: 3px solid rgba(255, 255, 255, 0.7); font-size: 16px;
-        }
-        #fire-btn:active { transform: scale(0.92); }
-        #scope-btn { bottom: 155px; right: 45px; width: 62px; height: 62px; background: rgba(15, 23, 42, 0.85); border: 2px solid #f59e0b; color: #f59e0b; font-size: 12px; }
-        #jump-btn { bottom: 55px; right: 150px; width: 60px; height: 60px; background: rgba(15, 23, 42, 0.8); border: 2px solid rgba(255, 255, 255, 0.4); font-size: 11px; }
-        #heal-btn { bottom: 135px; right: 130px; width: 56px; height: 56px; background: rgba(16, 185, 129, 0.85); border: 2px solid #fff; font-size: 11px; }
-
-        /* KILL FEED */
-        #kill-feed { position: absolute; top: 75px; right: 20px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .kill-msg { background: rgba(0, 0, 0, 0.8); color: #f59e0b; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: bold; border-right: 4px solid #ef4444; }
-
-        /* END SCREEN */
-        #end-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.95);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 40; color: #fff;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-</head>
-<body>
-
-    <div id="main-menu">
-        <div class="lobby-header">
-            <div>
-                <div class="game-logo">STYX <span>ULTRA</span></div>
-                <div style="color: #94a3b8; font-size: 14px; margin-top: 4px;">PUBG STYLE • REALISTIC GRAPHICS ENGINE</div>
-            </div>
-            <div class="badge">SEASON 1 ULTRA</div>
-        </div>
-        <div>
-            <button class="btn-start" onclick="startGame()">JANGGA KIRISH</button>
-            <div style="color: #cbd5e1; font-size: 12px; margin-top: 12px;">
-                Boshqaruv: WASD / Joystick | Sichqoncha / Ekran: Burilish | 1,2: Qurol | E: Scope | H: Aptekachka
-            </div>
-        </div>
-    </div>
-
-    <div id="canvas-container"></div>
-    <div id="scope-overlay" class="hidden"></div>
-
-    <div id="game-ui" class="hidden">
-        <div class="hud-top">
-            <div class="stat-card">TIRIK: <span id="enemies-left">15</span></div>
-            <div class="stat-card">KILLS: <span id="kills-count">0</span></div>
-        </div>
-        <div id="kill-feed"></div>
-        <div id="crosshair"></div>
-
-        <div class="bottom-center">
-            <div class="weapons-bar">
-                <div class="weapon-slot active" id="slot-1" onclick="switchWeapon(1)">1. M416 (AVTO)</div>
-                <div class="weapon-slot" id="slot-2" onclick="switchWeapon(2)">2. AWM (SNAYPER)</div>
-            </div>
-            <div class="hp-box">
-                <div class="hp-fill" id="hp-bar"></div>
-                <div class="hp-label" id="hp-text">HP: 100 / 100</div>
-            </div>
-        </div>
-
-        <div id="look-zone"></div>
-        <div class="joystick-zone" id="joystick"><div class="joystick-thumb" id="thumb"></div></div>
-        <div class="action-btn" id="jump-btn" onclick="jumpPlayer()">SAKRASH</div>
-        <div class="action-btn" id="heal-btn" onclick="useMedkit()">+HP (<span id="medkit-count">2</span>)</div>
-        <div class="action-btn" id="scope-btn" onclick="toggleScope()">4X SCOPE</div>
-        <div class="action-btn" id="fire-btn" onpointerdown="startFiring()" onpointerup="stopFiring()" onpointerleave="stopFiring()">OTISH</div>
-    </div>
-
-    <div id="end-screen" class="hidden">
-        <div id="end-title" style="font-size: 42px; font-weight: 900; color: #f59e0b; margin-bottom: 10px;">WINNER WINNER CHICKEN DINNER!</div>
-        <div id="end-stats" style="font-size: 20px; color: #cbd5e1; margin-bottom: 30px;"></div>
-        <button class="btn-start" onclick="location.reload()">LOBBYGA QAYTISH</button>
-    </div>
-
-    <script>
-        let scene, camera, renderer, playerGroup, gunMesh, muzzleFlash;
-        let isPlaying = false, playerHP = 100, kills = 0, totalEnemies = 15, medkits = 2;
-        let currentWeapon = 1;
-        let isScoped = false;
-        let enemies = [], bullets = [], enemyBullets = [], obstacles = [], lootBoxes = [];
-        let playerYaw = 0, playerPitch = 0, velocityY = 0, isGrounded = true;
-        let moveF = false, moveB = false, moveL = false, moveR = false;
-        let isFiring = false, lastShotTime = 0;
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            const now = audioCtx.currentTime;
-
-            if (type === 'm416') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.09);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
-            } else if (type === 'awm') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(110, now); osc.frequency.exponentialRampToValueAtTime(15, now + 0.3);
-                gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            } else if (type === 'enemy') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(130, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-                gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-            } else if (type === 'heal') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(450, now); osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
-                gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-            }
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(now); osc.stop(now + (type === 'awm' ? 0.3 : 0.1));
-        }
-
-        function startGame() {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            isPlaying = true;
-            initWorld();
-        }
-
-        function createSoldier(vestColor, helmetColor) {
-            const group = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({ color: vestColor, roughness: 0.5, metalness: 0.3 });
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.95, 0.42), bodyMat);
-            body.position.y = 1.18; body.castShadow = true; body.receiveShadow = true; group.add(body);
-
-            const bag = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.7, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 }));
-            bag.position.set(0, 1.2, 0.32); bag.castShadow = true; group.add(bag);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.44, 0.44), new THREE.MeshStandardMaterial({ color: 0xe0ac69, roughness: 0.8 }));
-            head.position.y = 1.88; head.castShadow = true; group.add(head);
-
-            const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.32, 0.52), new THREE.MeshStandardMaterial({ color: helmetColor, metalness: 0.8, roughness: 0.2 }));
-            helmet.position.y = 2.02; helmet.castShadow = true; group.add(helmet);
-
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.72, 0.32), legMat);
-            lLeg.position.set(-0.2, 0.36, 0); lLeg.castShadow = true; group.add(lLeg);
-            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.72, 0.32), legMat);
-            rLeg.position.set(0.2, 0.36, 0); rLeg.castShadow = true; group.add(rLeg);
-
-            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 1.05), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.9, roughness: 0.1 }));
-            gun.position.set(0.45, 1.32, -0.4); group.add(gun);
-
-            const flash = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfef08a }));
-            flash.position.set(0.45, 1.32, -1.05); flash.visible = false; group.add(flash);
-
-            return { group, lLeg, rLeg, gun, flash };
-        }
-
-        function createTree(x, z) {
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 4, 8), new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 }));
-            trunk.position.y = 2; trunk.castShadow = true; tree.add(trunk);
-
-            const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.6, 6, 8), new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.8 }));
-            leaves.position.y = 5.5; leaves.castShadow = true; tree.add(leaves);
-
-            tree.position.set(x, 0, z);
-            scene.add(tree);
-            obstacles.push({ x, z, w: 1.4, d: 1.4 });
-        }
-
-        function initWorld() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x38bdf8); // Realist ochiq osmon
-            scene.fog = new THREE.FogExp2(0x38bdf8, 0.008); // Realist tuman effekti
-
-            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 300);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-            // Realist yorug'lik
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-
-            const sun = new THREE.DirectionalLight(0xfffbeb, 1.5);
-            sun.position.set(50, 90, 50);
-            sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048;
-            sun.shadow.mapSize.height = 2048;
-            sun.shadow.camera.near = 0.5;
-            sun.shadow.camera.far = 300;
-            const d = 80;
-            sun.shadow.camera.left = -d;
-            sun.shadow.camera.right = d;
-            sun.shadow.camera.top = d;
-            sun.shadow.camera.bottom = -d;
-            scene.add(sun);
-
-            // Yer (O'tloq)
-            const ground = new THREE.Mesh(
-                new THREE.PlaneGeometry(300, 300),
-                new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 })
-            );
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-
-            const grass = new THREE.Mesh(
-                new THREE.PlaneGeometry(260, 260),
-                new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.9 })
-            );
-            grass.rotation.x = -Math.PI / 2; grass.position.y = 0.01;
-            grass.receiveShadow = true;
-            scene.add(grass);
-
-            // Asfalt yo'llar
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
-            const road1 = new THREE.Mesh(new THREE.PlaneGeometry(16, 260), roadMat);
-            road1.rotation.x = -Math.PI / 2; road1.position.y = 0.02; scene.add(road1);
-            const road2 = new THREE.Mesh(new THREE.PlaneGeometry(260, 16), roadMat);
-            road2.rotation.x = -Math.PI / 2; road2.position.y = 0.02; scene.add(road2);
-
-            // Harbiy binolar va konteynerlar
-            const boxColors = [0x991b1b, 0x1e3a8a, 0xb45309, 0x334155, 0x3f3f46];
-            for (let i = 0; i < 38; i++) {
-                const isBuilding = i % 3 === 0;
-                const w = isBuilding ? 8 : 4;
-                const h = isBuilding ? 6 : 2.8;
-                const d_size = isBuilding ? 8 : 7.5;
-                const mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(w, h, d_size),
-                    new THREE.MeshStandardMaterial({ color: boxColors[i % boxColors.length], roughness: 0.6, metalness: 0.4 })
-                );
-                let rx = (Math.random() - 0.5) * 200;
-                let rz = (Math.random() - 0.5) * 200;
-                if (Math.abs(rx) < 14 && Math.abs(rz) < 14) rx += 25;
-                mesh.position.set(rx, h / 2, rz);
-                mesh.castShadow = true; mesh.receiveShadow = true;
-                scene.add(mesh);
-                obstacles.push({ x: rx, z: rz, w, d: d_size });
-            }
-
-            // Daraxtlar
-            for (let i = 0; i < 45; i++) {
-                let tx = (Math.random() - 0.5) * 220;
-                let tz = (Math.random() - 0.5) * 220;
-                if (Math.abs(tx) > 12 && Math.abs(tz) > 12) createTree(tx, tz);
-            }
-
-            // O'yinchi
-            const pModel = createSoldier(0x15803d, 0x0f172a);
-            playerGroup = pModel.group;
-            playerGroup.legs = [pModel.lLeg, pModel.rLeg];
-            gunMesh = pModel.gun;
-            muzzleFlash = pModel.flash;
-            scene.add(playerGroup);
-
-            // Dushmanlar
-            for (let i = 0; i < totalEnemies; i++) {
-                const eModel = createSoldier(0xb91c1c, 0x020617);
-                const enemy = eModel.group;
-                enemy.position.set((Math.random() - 0.5) * 180, 0, -25 - Math.random() * 120);
-                enemy.hp = 100;
-                enemy.lastShot = 0;
-                enemy.legs = [eModel.lLeg, eModel.rLeg];
-                enemy.flash = eModel.flash;
-                scene.add(enemy);
-                enemies.push(enemy);
-            }
-
-            setupControls();
-            animate();
-        }
-
-        function switchWeapon(num) {
-            currentWeapon = num;
-            document.getElementById('slot-1').classList.toggle('active', num === 1);
-            document.getElementById('slot-2').classList.toggle('active', num === 2);
-            gunMesh.scale.z = num === 2 ? 1.5 : 1.0;
-            gunMesh.material.color.setHex(num === 2 ? 0x1e293b : 0x111827);
-        }
-
-        function toggleScope() {
-            isScoped = !isScoped;
-            document.getElementById('scope-overlay').classList.toggle('hidden', !isScoped);
-            camera.fov = isScoped ? (currentWeapon === 2 ? 20 : 35) : 65;
-            camera.updateProjectionMatrix();
-        }
-
-        function useMedkit() {
-            if (medkits > 0 && playerHP < 100) {
-                medkits--;
-                playerHP = Math.min(100, playerHP + 50);
-                document.getElementById('medkit-count').innerText = medkits;
-                updateHP();
-                playSound('heal');
-            }
-        }
-
-        function jumpPlayer() {
-            if (isGrounded) { velocityY = 0.2
+            background: radial-gradient(circle, transparent 26%, rgba(2
