@@ -3,389 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STYX MOBILE - Season 1: Tactical Strike</title>
+    <title>STYX MOBILE - Tactical Battleground</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #030712;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        /* BOSH MENYU */
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a202c; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        
+        /* LOBBY (PUBG STYLE) */
         #main-menu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.9) 100%);
+            display: flex; flex-direction: column; justify-content: space-between; padding: 30px; z-index: 20;
         }
-        .menu-box {
-            text-align: center;
-            border: 2px solid rgba(0, 255, 204, 0.4);
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.25);
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(12px);
-            width: 320px;
+        .top-bar { display: flex; justify-content: space-between; align-items: center; color: #f59e0b; font-weight: bold; }
+        .logo-title { font-size: 36px; font-weight: 900; color: #ffffff; letter-spacing: 3px; text-shadow: 0 4px 15px rgba(245, 158, 11, 0.6); }
+        .logo-title span { color: #f59e0b; }
+        .season-badge { background: #f59e0b; color: #000; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 900; }
+        .start-area { align-self: flex-start; }
+        .btn-play {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+            color: #000; font-size: 22px; font-weight: 900; padding: 18px 50px;
+            border: none; border-radius: 6px; cursor: pointer; letter-spacing: 2px;
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5); text-transform: uppercase;
         }
-        h1 {
-            font-size: 30px;
-            color: #00ffcc;
-            margin-bottom: 5px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        .btn-play:active { transform: scale(0.96); }
+        .hidden { display: none !important; }
+
+        /* HUD INTERFEYSI */
+        #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .hud-top { position: absolute; top: 15px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .alive-box { background: rgba(0,0,0,0.6); border-left: 4px solid #f59e0b; padding: 8px 15px; color: #fff; font-weight: bold; font-size: 16px; }
+        .alive-box span { color: #f59e0b; font-size: 20px; margin-left: 5px; }
+        
+        /* CROSSHAIR (NISHON) */
+        #crosshair {
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
+            width: 24px; height: 24px; pointer-events: none;
         }
-        .subtitle {
-            color: #9ca3af;
-            font-size: 11px;
-            margin-bottom: 25px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        #crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(0, 255, 100, 0.85); }
+        #crosshair::before { top: 11px; left: 0; width: 24px; height: 2px; }
+        #crosshair::after { top: 0; left: 11px; width: 2px; height: 24px; }
+
+        /* HP BAR (JON) */
+        .hp-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 260px; background: rgba(0,0,0,0.7); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
         }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            margin: 12px 0;
-            background: linear-gradient(135deg, #00ffcc 0%, #00b386 100%);
-            color: #030712;
-            font-weight: bold;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
-        }
-        .btn:active {
-            transform: scale(0.96);
-        }
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid #374151;
-            color: #d1d5db;
-            box-shadow: none;
-        }
-        .hidden {
-            display: none !important;
-        }
-        /* O'YIN INTERFEYSI (HUD) */
-        #game-ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .hud-top {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            color: #00ffcc;
-            font-size: 16px;
-            font-weight: bold;
-            text-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
-        }
-        /* OTISH TUGMASI */
-        #fire-btn {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 50, 50, 0.7);
-            border: 3px solid #ff3333;
-            border-radius: 50%;
-            pointer-events: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(255, 50, 50, 0.5);
-            cursor: pointer;
-        }
-        #fire-btn:active {
-            transform: scale(0.9);
-        }
-        /* JOYSTICK */
+        .hp-bar { width: 100%; height: 14px; background: #10b981; border-radius: 3px; transition: width 0.2s, background 0.2s; }
+        .hp-text { color: #fff; font-size: 11px; font-weight: bold; text-align: center; margin-top: 3px; letter-spacing: 1px; }
+
+        /* BOSHQARUV TUGMALARI */
         .joystick-zone {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
-            width: 110px;
-            height: 110px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(0, 255, 204, 0.3);
-            border-radius: 50%;
-            pointer-events: auto;
-            touch-action: none;
+            position: absolute; bottom: 40px; left: 35px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%; pointer-events: auto; touch-action: none;
         }
         .joystick-thumb {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            width: 46px;
-            height: 46px;
-            background: rgba(0, 255, 204, 0.5);
-            border-radius: 50%;
-            box-shadow: 0 0 10px #00ffcc;
+            position: absolute; top: 35px; left: 35px; width: 46px; height: 46px;
+            background: rgba(245, 158, 11, 0.8); border-radius: 50%; box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
         }
+        #look-zone {
+            position: absolute; top: 0; right: 0; width: 55%; height: 100%; pointer-events: auto; touch-action: none;
+        }
+        #fire-btn {
+            position: absolute; bottom: 45px; right: 40px; width: 85px; height: 85px;
+            background: radial-gradient(circle, #ef4444 0%, #991b1b 100%);
+            border: 3px solid rgba(255,255,255,0.6); border-radius: 50%; pointer-events: auto;
+            display: flex; justify-content: center; align-items: center; color: white;
+            font-weight: 900; font-size: 15px; letter-spacing: 1px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            z-index: 15;
+        }
+        #fire-btn:active { transform: scale(0.9); }
+        #jump-btn {
+            position: absolute; bottom: 145px; right: 45px; width: 55px; height: 55px;
+            background: rgba(0, 0, 0, 0.6); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
+            pointer-events: auto; color: #fff; font-weight: bold; font-size: 12px;
+            display: flex; justify-content: center; align-items: center; z-index: 15;
+        }
+
+        /* NATIJA OYNASI */
+        #end-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 30; color: #fff;
+        }
+        #end-title { font-size: 40px; font-weight: 900; color: #f59e0b; margin-bottom: 10px; text-align: center; }
     </style>
-    <!-- Three.js Kutubxonasi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <!-- BOSH MENYU -->
+    <!-- LOBBY -->
     <div id="main-menu">
-        <div class="menu-box">
-            <h1>STYX MOBILE</h1>
-            <div class="subtitle">Season 1: Tactical Strike</div>
-            <button class="btn" onclick="launchGame()">1-MAVSUSHNI BOSHLASH</button>
-            <button class="btn btn-secondary" onclick="alert('1-Mavsum: Dushmanlarni yo‘q qiling va 10 ball yig‘ing!')">MAVSUM HAQIDA</button>
+        <div class="top-bar">
+            <div>
+                <div class="logo-title">STYX <span>MOBILE</span></div>
+                <div style="color: #cbd5e1; font-size: 13px; margin-top: 4px;">TACTICAL BATTLEGROUND • ERANGEL ZONE</div>
+            </div>
+            <div class="season-badge">SEASON 1</div>
+        </div>
+        <div class="start-area">
+            <button class="btn-play" onclick="startGame()">JANGNI BOSHLASH</button>
+            <div style="color: #94a3b8; font-size: 12px; margin-top: 10px;">Boshqaruv: WASD / Joystick | Sichqoncha yoki O'ng ekran: Burilish</div>
         </div>
     </div>
 
-    <!-- 3D KANVAS -->
+    <!-- 3D SAHNA -->
     <div id="canvas-container"></div>
 
-    <!-- O'YIN HUD VA BOSHQARUV -->
+    <!-- HUD -->
     <div id="game-ui" class="hidden">
         <div class="hud-top">
-            <div id="score-text">BALL: 0 / 10</div>
-            <div id="status-text">1-MAVSUM</div>
+            <div class="alive-box">TIRIK DUSHMANLAR: <span id="enemies-left">10</span></div>
+            <div class="alive-box">O'LDIRILDI: <span id="kills-count">0</span></div>
         </div>
-        <div class="joystick-zone" id="joystick">
-            <div class="joystick-thumb" id="thumb"></div>
+        <div id="crosshair"></div>
+        <div class="hp-container">
+            <div class="hp-bar" id="hp-bar"></div>
+            <div class="hp-text" id="hp-text">HP: 100 / 100</div>
         </div>
-        <div id="fire-btn" onclick="shootBullet()">OTISH</div>
+        <div id="look-zone"></div>
+        <div class="joystick-zone" id="joystick"><div class="joystick-thumb" id="thumb"></div></div>
+        <div id="jump-btn" onclick="jumpPlayer()">SAKRASH</div>
+        <div id="fire-btn" onpointerdown="startFiring()" onpointerup="stopFiring()" onpointerleave="stopFiring()">OTISH</div>
+    </div>
+
+    <!-- G'ALABA / MAG'LUBIYAT -->
+    <div id="end-screen" class="hidden">
+        <div id="end-title">WINNER WINNER!</div>
+        <p id="end-desc" style="font-size: 18px; color: #cbd5e1; margin-bottom: 25px;"></p>
+        <button class="btn-play" onclick="location.reload()">QAYTA O'YNASH</button>
     </div>
 
     <script>
-        let scene, camera, renderer, player;
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-        let isGameStarted = false;
-        let targets = [];
-        let bullets = [];
-        let score = 0;
-        const targetGoal = 10;
+        let scene, camera, renderer, playerGroup, gunMesh;
+        let isPlaying = false, playerHP = 100, kills = 0, totalEnemies = 10;
+        let enemies = [], bullets = [], enemyBullets = [], obstacles = [];
+        let playerYaw = 0, velocityY = 0, isGrounded = true;
+        let moveF = false, moveB = false, moveL = false, moveR = false;
+        let isFiring = false, lastShotTime = 0;
 
-        function launchGame() {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            isGameStarted = true;
-            init3D();
+        // OVOZ GENERATSIYASI (MP3 FAYLSIZ)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playGunSound(isPlayer = true) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = isPlayer ? 'sawtooth' : 'square';
+            osc.frequency.setValueAtTime(isPlayer ? 160 : 110, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.12);
+            gain.gain.setValueAtTime(isPlayer ? 0.25 : 0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.12);
         }
 
-        function init3D() {
-            const container = document.getElementById('canvas-container');
+        function startGame() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            isPlaying = true;
+            initWorld();
+        }
+
+        // ASKAR MODELINI YASASH (CUBIC SOLDIER + HELMET + GUN)
+        function createSoldierModel(armorColor, helmetColor) {
+            const group = new THREE.Group();
             
-            // Sahina
+            // Tana (Zirh)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.4), new THREE.MeshStandardMaterial({ color: armorColor, roughness: 0.6 }));
+            body.position.y = 1.15; body.castShadow = true; group.add(body);
+
+            // Bosh va Dubulg'a (Level 3 Helmet uslubi)
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), new THREE.MeshStandardMaterial({ color: 0xf1c27d }));
+            head.position.y = 1.85; group.add(head);
+            const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.5), new THREE.MeshStandardMaterial({ color: helmetColor, metalness: 0.5 }));
+            helmet.position.y = 2.0; group.add(helmet);
+
+            // Oyoqlar
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+            const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.7, 0.32), legMat);
+            leftLeg.position.set(-0.2, 0.35, 0); group.add(leftLeg);
+            const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.7, 0.32), legMat);
+            rightLeg.position.set(0.2, 0.35, 0); group.add(rightLeg);
+
+            // Avtomat (M416)
+            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.9), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8 }));
+            gun.position.set(0.42, 1.3, -0.35);
+            group.add(gun);
+
+            return { group, leftLeg, rightLeg, gun };
+        }
+
+        function initWorld() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050b14);
-            scene.fog = new THREE.FogExp2(0x050b14, 0.025);
+            scene.background = new THREE.Color(0x87ceeb); // Kunduzgi osmon
+            scene.fog = new THREE.Fog(0x87ceeb, 25, 110);
 
-            // Kamera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 4, 8);
-
-            // Render
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 200);
+            
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // Yorug'lik
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0x00ffcc, 1.2);
-            dirLight.position.set(10, 20, 10);
+            // Quyosh va Yorug'lik
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+            scene.add(hemiLight);
+            const dirLight = new THREE.DirectionalLight(0xfff5e4, 1.1);
+            dirLight.position.set(30, 50, 30);
+            dirLight.castShadow = true;
             scene.add(dirLight);
 
-            // Yer (Arena)
-            const floorGeo = new THREE.PlaneGeometry(120, 120);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5, metalness: 0.7 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
+            // Yer (Yashil o'tloq)
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(160, 160),
+                new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
 
-            const grid = new THREE.GridHelper(120, 60, 0x00ffcc, 0x1e293b);
-            grid.position.y = 0.01;
-            scene.add(grid);
+            // Asfalt yo'l
+            const road = new THREE.Mesh(
+                new THREE.PlaneGeometry(12, 160),
+                new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 })
+            );
+            road.rotation.x = -Math.PI / 2; road.position.y = 0.02;
+            scene.add(road);
 
-            // O'yinchi (Personaj)
-            const playerGeo = new THREE.BoxGeometry(0.8, 1.8, 0.8);
-            const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.9 });
-            player = new THREE.Mesh(playerGeo, playerMat);
-            player.position.y = 0.9;
-            scene.add(player);
+            // Harbiy konteynerlar va bunkerlar (To'siqlar)
+            const boxColors = [0x991b1b, 0x1e40af, 0xb45309, 0x475569];
+            for (let i = 0; i < 22; i++) {
+                const isContainer = i % 2 === 0;
+                const w = isContainer ? 3.5 : 2.5;
+                const h = isContainer ? 2.6 : 1.3;
+                const d = isContainer ? 7 : 2.5;
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(w, h, d),
+                    new THREE.MeshStandardMaterial({ color: boxColors[i % boxColors.length], roughness: 0.7 })
+                );
+                let rx = (Math.random() - 0.5) * 110;
+                let rz = (Math.random() - 0.5) * 110;
+                if (Math.abs(rx) < 8 && Math.abs(rz) < 8) rx += 15; // O'yinchi ustiga tushmasligi uchun
+                mesh.position.set(rx, h / 2, rz);
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                scene.add(mesh);
+                obstacles.push({ mesh, w, d });
+            }
 
-            // Muhit to'siqlari va Dushmanlar (Targets)
-            spawnTargets();
+            // O'yinchi
+            const pModel = createSoldierModel(0x15803d, 0x1f2937);
+            playerGroup = pModel.group;
+            playerGroup.legs = [pModel.leftLeg, pModel.rightLeg];
+            gunMesh = pModel.gun;
+            scene.add(playerGroup);
 
-            // Hodisalar
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'w') moveForward = true;
-                if (e.key === 's') moveBackward = true;
-                if (e.key === 'a') moveLeft = true;
-                if (e.key === 'd') moveRight = true;
-            });
-            window.addEventListener('keyup', (e) => {
-                if (e.key === 'w') moveForward = false;
-                if (e.key === 's') moveBackward = false;
-                if (e.key === 'a') moveLeft = false;
-                if (e.key === 'd') moveRight = false;
-            });
+            // Dushman Botlarni yaratish
+            for (let i = 0; i < totalEnemies; i++) {
+                const eModel = createSoldierModel(0xb91c1c, 0x000000);
+                const enemy = eModel.group;
+                enemy.position.set((Math.random() - 0.5) * 100, 0, -15 - Math.random() * 60);
+                enemy.hp = 100;
+                enemy.lastShot = 0;
+                enemy.legs = [eModel.leftLeg, eModel.rightLeg];
+                scene.add(enemy);
+                enemies.push(enemy);
+            }
 
+            setupControls();
             animate();
         }
 
-        function spawnTargets() {
-            // Dushman nishonlarni yaratish
-            for (let i = 0; i < targetGoal; i++) {
-                const targetGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
-                const targetMat = new THREE.MeshStandardMaterial({ color: 0xff3366, roughness: 0.3, metalness: 0.8 });
-                const target = new THREE.Mesh(targetGeo, targetMat);
-                
-                target.position.set(
-                    (Math.random() - 0.5) * 35,
-                    0.6,
-                    -10 - Math.random() * 30
-                );
-                scene.add(target);
-                targets.push(target);
-            }
+        function jumpPlayer() {
+            if (isGrounded) { velocityY = 0.22; isGrounded = false; }
         }
 
-        function shootBullet() {
-            if (!isGameStarted) return;
-            const bulletGeo = new THREE.SphereGeometry(0.2, 8, 8);
-            const bulletMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-            const bullet = new THREE.Mesh(bulletGeo, bulletMat);
-            
-            bullet.position.copy(player.position);
-            bullet.position.y += 0.3;
-            
-            // O'qning harakat yo'nalishi (oldinga)
-            bullet.velocity = new THREE.Vector3(0, 0, -0.8);
+        function startFiring() { isFiring = true; }
+        function stopFiring() { isFiring = false; }
+
+        function fireBullet(shooter, isPlayer) {
+            playGunSound(isPlayer);
+            const bullet = new THREE.Mesh(
+                new THREE.SphereGeometry(0.12, 6, 6),
+                new THREE.MeshBasicMaterial({ color: isPlayer ? 0xfacc15 : 0xff4444 })
+            );
+            bullet.position.copy(shooter.position);
+            bullet.position.y += 1.35;
+
+            const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), shooter.rotation.y);
+            bullet.position.addScaledVector(dir, 0.8);
+            bullet.velocity = dir.multiplyScalar(1.4);
             scene.add(bullet);
-            bullets.push(bullet);
+
+            if (isPlayer) bullets.push(bullet);
+            else enemyBullets.push(bullet);
+        }
+
+        function checkCollision(pos) {
+            if (Math.abs(pos.x) > 75 || Math.abs(pos.z) > 75) return true;
+            for (let obs of obstacles) {
+                if (Math.abs(pos.x - obs.mesh.position.x) < (obs.w / 2 + 0.5) &&
+                    Math.abs(pos.z - obs.mesh.position.z) < (obs.d / 2 + 0.5)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function animate() {
             requestAnimationFrame(animate);
+            if (!isPlaying) return;
 
-            if (isGameStarted) {
-                // O'yinchini harakatlantirish
-                if (moveForward) player.position.z -= 0.12;
-                if (moveBackward) player.position.z += 0.12;
-                if (moveLeft) player.position.x -= 0.12;
-                if (moveRight) player.position.x += 0.12;
+            const now = Date.now();
 
-                // Kamerani ergashuvi
-                camera.position.x = player.position.x;
-                camera.position.z = player.position.z + 7;
-                camera.lookAt(player.position.x, player.position.y, player.position.z);
+            // Avtomatik otish (tugmani bosib turganda)
+            if (isFiring && now - lastShotTime > 140) {
+                fireBullet(playerGroup, true);
+                lastShotTime = now;
+            }
 
-                // O'qlarni harakati va nishonga tegishini tekshirish
-                for (let i = bullets.length - 1; i >= 0; i--) {
-                    let b = bullets[i];
-                    b.position.add(b.velocity);
+            // O'yinchi harakati
+            playerGroup.rotation.y = playerYaw;
+            let moveSpeed = 0.16;
+            let dx = 0, dz = 0;
+            if (moveF) dz -= 1;
+            if (moveB) dz += 1;
+            if (moveL) dx -= 1;
+            if (moveR) dx += 1;
 
-                    // Dushmanlar bilan to'qnashuvni tekshirish
-                    for (let j = targets.length - 1; j >= 0; j--) {
-                        let t = targets[j];
-                        if (b.position.distanceTo(t.position) < 1.2) {
-                            scene.remove(t);
-                            targets.splice(j, 1);
-                            scene.remove(b);
-                            bullets.splice(i, 1);
-                            
-                            score++;
-                            document.getElementById('score-text').innerText = `BALL: ${score} / ${targetGoal}`;
+            if (dx !== 0 || dz !== 0) {
+                const moveVec = new THREE.Vector3(dx, 0, dz).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), playerYaw);
+                const nextPos = playerGroup.position.clone().addScaledVector(moveVec, moveSpeed);
+                if (!checkCollision(nextPos)) {
+                    playerGroup.position.copy(nextPos);
+                }
+                // Yugurish animatsiyasi
+                playerGroup.legs[0].rotation.x = Math.sin(now * 0.015) * 0.6;
+                playerGroup.legs[1].rotation.x = -Math.sin(now * 0.015) * 0.6;
+            } else {
+                playerGroup.legs[0].rotation.x = 0;
+                playerGroup.legs[1].rotation.x = 0;
+            }
 
-                            if (score >= targetGoal) {
-                                alert("TABRIKLAYMAN, DO'STIM! 1-MAVSUM MUVAFFAQIYATLI YAKUNLANDI!");
-                                location.reload();
-                            }
-                            break;
+            // Sakrash fizikasi
+            playerGroup.position.y += velocityY;
+            if (playerGroup.position.y > 0) {
+                velocityY -= 0.012;
+            } else {
+                playerGroup.position.y = 0;
+                velocityY = 0;
+                isGrounded = true;
+            }
+
+            // Uchinchi shaxs (TPS - PUBG) kamerasi
+            const camOffset = new THREE.Vector3(0.7, 2.5, 4.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerYaw);
+            camera.position.copy(playerGroup.position).add(camOffset);
+            const lookTarget = playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, -10).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerYaw));
+            camera.lookAt(lookTarget);
+
+            // O'yinchi o'qlari
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.position.add(b.velocity);
+                let hit = false;
+
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    let e = enemies[j];
+                    if (b.position.distanceTo(e.position.clone().add(new THREE.Vector3(0, 1.1, 0))) < 1.0) {
+                        e.hp -= 35;
+                        hit = true;
+                        if (e.hp <= 0) {
+                            scene.remove(e);
+                            enemies.splice(j, 1);
+                            kills++;
+                            document.getElementById('kills-count').innerText = kills;
+                            document.getElementById('enemies-left').innerText = enemies.length;
+                            if (enemies.length === 0) endGame(true);
                         }
+                        break;
                     }
+                }
+                if (hit || checkCollision(b.position)) {
+                    scene.remove(b);
+                    bullets.splice(i, 1);
+                }
+            }
 
-                    // Uzoqqa ketgan o'qlarni o'chirish
-                    if (b && b.position.z < -60) {
-                        scene.remove(b);
-                        bullets.splice(i, 1);
-                    }
+            // Dushman AI (Harakat va Otish)
+            enemies.forEach(e => {
+                const dist = e.position.distanceTo(playerGroup.position);
+                e.lookAt(playerGroup.position.x, 0, playerGroup.position.z);
+                e.rotateY(Math.PI); // Model oldinga qarashi uchun
+
+                if (dist > 12 && dist < 55) {
+                    const dirToPlayer = new THREE.Vector3().subVectors(playerGroup.position, e.position).normalize();
+                    const nextEPos = e.position.clone().addScaledVector(dirToPlayer, 0.06);
+                    if (!checkCollision(nextEPos)) e.position.copy(nextEPos);
+                    e.legs[0].rotation.x = Math.sin(now * 0.01) * 0.5;
+                    e.legs[1].rotation.x = -Math.sin(now * 0.01) * 0.5;
+                }
+                if (dist < 40 && now - e.lastShot > 1600) {
+                    fireBullet(e, false);
+                    e.lastShot = now;
+                }
+            });
+
+            // Dushman o'qlari
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                let eb = enemyBullets[i];
+                eb.position.add(eb.velocity);
+                if (eb.position.distanceTo(playerGroup.position.clone().add(new THREE.Vector3(0, 1.1, 0))) < 0.9) {
+                    playerHP -= 10;
+                    updateHP();
+                    scene.remove(eb);
+                    enemyBullets.splice(i, 1);
+                    if (playerHP <= 0) endGame(false);
+                } else if (checkCollision(eb.position)) {
+                    scene.remove(eb);
+                    enemyBullets.splice(i, 1);
                 }
             }
 
             renderer.render(scene, camera);
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        function updateHP() {
+            const bar = document.getElementById('hp-bar');
+            bar.style.width = Math.max(0, playerHP) + '%';
+            if (playerHP < 35) bar.style.background = '#ef4444';
+            document.getElementById('hp-text').innerText = `HP: ${Math.max(0, playerHP)} / 100`;
         }
 
-        // Mobil Joystick
-        const joystick = document.getElementById('joystick');
-        const thumb = document.getElementById('thumb');
-        let joystickPressed = false;
+        function endGame(win) {
+            isPlaying = false;
+            document.getElementById('game-ui').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('end-title').innerText = win ? "WINNER WINNER CHICKEN DINNER!" : "SIZ HALOK BO'LDINGIZ!";
+            document.getElementById('end-desc').innerText = `Yo'q qilingan dushmanlar: ${kills} ta`;
+        }
 
-        joystick.addEventListener('pointerdown', () => { joystickPressed = true; });
-        window.addEventListener('pointerup', () => { 
-            joystickPressed = false; 
-            thumb.style.transform = `translate(0px, 0px)`;
-            moveForward = moveBackward = moveLeft = moveRight = false;
-        });
+        function setupControls() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            window.addEventListener('keydown', e => {
+                if (e.key === 'w' || e.key === 'W') moveF = true;
+                if (e.key === 's' || e.key === 'S') moveB = true;
+                if (e.key === 'a' || e.key === 'A') moveL = true;
+                if (e.key === 'd' || e.key === 'D') moveR = true;
+                if (e.key === ' ') jumpPlayer();
+            });
+            window.addEventListener('keyup', e => {
+                if (e.key === 'w' || e.key === 'W') moveF = false;
+                if (e.key === 's' || e.key === 'S') moveB = false;
+                if (e.key === 'a' || e.key === 'A') moveL = false;
+                if (e.key === 'd' || e.key === 'D') moveR = false;
+            });
 
-        joystick.addEventListener('pointermove', (e) => {
-            if (!joystickPressed) return;
-            const rect = joystick.getBoundingClientRect();
-            const x = e.clientX - (rect.left + rect.width / 2);
-            const y = e.clientY - (rect.top + rect.height / 2);
-            const distance = Math.min(30, Math.hypot(x, y));
-            const angle = Math.atan2(y, x);
-            
-            thumb.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+            // Kamera burish (Touch & Mouse drag)
+            const lookZone = document.getElementById('look-zone');
+            let isLooking = false, lastX = 0;
+            lookZone.addEventListener('pointerdown', e => { isLooking = true; lastX = e.clientX; });
+            window.addEventListener('pointerup', () => { isLooking = false; });
+            window.addEventListener('pointermove', e => {
+                if (!isLooking) return;
+                const deltaX = e.clientX - lastX;
+                playerYaw -= deltaX * 0.007;
+                lastX = e.clientX;
+            });
 
-            moveForward = y < -10;
-            moveBackward = y > 10;
-            moveLeft = x < -10;
-            moveRight = x > 10;
-        });
+            // Joystick
+            const joy = document.getElementById('joystick'), thumb = document.getElementById('thumb');
+            let joyActive = false;
+            joy.addEventListener('pointerdown', () => joyActive = true);
+            window.addEventListener('pointerup', () => {
+                joyActive = false; thumb.style.transform = `translate(0px, 0px)`;
+                moveF = moveB = moveL = moveR = false;
+            });
+            joy.addEventListener('pointermove', e => {
+                if (!joyActive) return;
+                const rect = joy.getBoundingClientRect();
+                const x = e.clientX - (rect.left + rect.width / 2);
+                const y = e.clientY - (rect.top + rect.height / 2);
+                const dist = Math.min(35, Math.hypot(x, y));
+                const ang = Math.atan2(y, x);
+                thumb.style.transform = `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px)`;
+                moveF = y < -12; moveB = y > 12; moveL = x < -12; moveR = x > 12;
+            });
+        }
     </script>
 </body>
 </html>
