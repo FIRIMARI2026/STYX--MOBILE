@@ -2,32 +2,52 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STYX MOBILE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STYX MOBILE - 3D Tactical Action</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
         }
-        body {
+        body, html {
             margin: 0;
-            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-            color: #ffffff;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #030712;
             font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* BOSH MENYU STYLI */
+        #main-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            z-index: 10;
         }
-        .menu-container {
+        .menu-box {
             text-align: center;
             border: 2px solid rgba(0, 255, 204, 0.4);
             padding: 40px 30px;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.25);
             background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             width: 320px;
         }
         h1 {
@@ -35,13 +55,13 @@
             color: #00ffcc;
             margin-bottom: 5px;
             letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
         }
         .subtitle {
             color: #9ca3af;
             font-size: 12px;
             margin-bottom: 30px;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
         .btn {
@@ -56,16 +76,11 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 255, 204, 0.5);
-            background: linear-gradient(135deg, #1affd1 0%, #00cc99 100%);
-        }
         .btn:active {
-            transform: translateY(1px);
+            transform: scale(0.96);
         }
         .btn-secondary {
             background: transparent;
@@ -73,44 +88,217 @@
             color: #d1d5db;
             box-shadow: none;
         }
-        .btn-secondary:hover {
-            border-color: #00ffcc;
-            color: #00ffcc;
-            background: rgba(0, 255, 204, 0.05);
+        .hidden {
+            display: none !important;
         }
-        .footer-info {
-            margin-top: 25px;
-            font-size: 11px;
-            color: #6b7280;
+        /* O'YIN INTERFEYSI (HUD) */
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .hud-top {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffcc;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+        .joystick-zone {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 204, 0.3);
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+        }
+        .joystick-thumb {
+            position: absolute;
+            top: 35px;
+            left: 35px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 255, 204, 0.5);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ffcc;
         }
     </style>
+    <!-- Three.js kutubxonasi 3D grafika uchun -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div class="menu-container">
-        <h1>STYX MOBILE</h1>
-        <div class="subtitle">Alpha v0.1</div>
-        
-        <button class="btn" onclick="startGame()">O'YINNI BOSHLASH</button>
-        <button class="btn btn-secondary" onclick="openSettings()">SOZLAMALAR</button>
-        <button class="btn btn-secondary" onclick="openAbout()">LOYIHA HAQIDA</button>
+    <!-- BOSH MENYU -->
+    <div id="main-menu">
+        <div class="menu-box">
+            <h1>STYX MOBILE</h1>
+            <div class="subtitle">Tactical Engine v1.0</div>
+            <button class="btn" onclick="launchGame()">O'YINNI BOSHLASH</button>
+            <button class="btn btn-secondary" onclick="alert('Grafika: Ultra PBR\nOptimizatsiya: 2GB Limit moslashuvi')">SOZLAMALAR</button>
+        </div>
+    </div>
 
-        <div class="footer-info">Birgalikda qurilmoqda &bull; 2026</div>
+    <!-- 3D KANVAS MAYDONI -->
+    <div id="canvas-container"></div>
+
+    <!-- O'YIN ICHIDAGI BOSHQARUV -->
+    <div id="game-ui" class="hidden">
+        <div class="hud-top">STATUS: JANGDA</div>
+        <div class="joystick-zone" id="joystick">
+            <div class="joystick-thumb" id="thumb"></div>
+        </div>
     </div>
 
     <script>
-        function startGame() {
-            alert("O'yin muhiti yuklanmoqda... Keyingi bosqichga o'tamiz, do'stim!");
+        let scene, camera, renderer, player;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let isGameStarted = false;
+
+        function launchGame() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            isGameStarted = true;
+            init3D();
         }
 
-        function openSettings() {
-            alert("Sozlamalar bo'limi tez orada qo'shiladi.");
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            
+            // 1. Sahnani yaratish
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050b14);
+            scene.fog = new THREE.FogExp2(0x050b14, 0.03);
+
+            // 2. Kamera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+
+            // 3. Render
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // 4. Yorug'lik
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0x00ffcc, 1.2);
+            directionalLight.position.set(10, 20, 10);
+            scene.add(directionalLight);
+
+            // 5. Yer (Arena)
+            const floorGeo = new THREE.PlaneGeometry(100, 100);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.8 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+
+            // Grid chiziqlar
+            const grid = new THREE.GridHelper(100, 50, 0x00ffcc, 0x1e293b);
+            grid.position.y = 0.01;
+            scene.add(grid);
+
+            // 6. O'yinchi (Personaj)
+            const playerGeo = new THREE.BoxGeometry(1, 2, 1);
+            const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.2, metalness: 0.9 });
+            player = new THREE.Mesh(playerGeo, playerMat);
+            player.position.y = 1;
+            scene.add(player);
+
+            // Muhitdagi estetik obyektlar (binolar/ustunlar)
+            for (let i = 0; i < 15; i++) {
+                const boxGeo = new THREE.BoxGeometry(2, Math.random() * 6 + 2, 2);
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
+                const box = new THREE.Mesh(boxGeo, boxMat);
+                box.position.set((Math.random() - 0.5) * 40, box.geometry.parameters.height / 2, (Math.random() - 0.5) * 40);
+                scene.add(box);
+            }
+
+            // Ekran o'lchami o'zgarganda
+            window.addEventListener('resize', onWindowResize);
+
+            // Klaviatura boshqaruvi (kompyuter uchun ham)
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'w') moveForward = true;
+                if (e.key === 's') moveBackward = true;
+                if (e.key === 'a') moveLeft = true;
+                if (e.key === 'd') moveRight = true;
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'w') moveForward = false;
+                if (e.key === 's') moveBackward = false;
+                if (e.key === 'a') moveLeft = false;
+                if (e.key === 'd') moveRight = false;
+            });
+
+            animate();
         }
 
-        function openAbout() {
-            alert("STYX MOBILE — yuqori sifatli mobil loyiha.");
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isGameStarted) {
+                // Harakat mantiqi
+                if (moveForward) player.position.z -= 0.1;
+                if (moveBackward) player.position.z += 0.1;
+                if (moveLeft) player.position.x -= 0.1;
+                if (moveRight) player.position.x += 0.1;
+
+                // Kamerani o'yinchiga ergashtirish
+                camera.position.x = player.position.x;
+                camera.position.z = player.position.z + 8;
+                camera.lookAt(player.position.x, player.position.y, player.position.z);
+            }
+
+            renderer.render(scene, camera);
         }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Mobil Joystick simulyatsiyasi
+        const joystick = document.getElementById('joystick');
+        const thumb = document.getElementById('thumb');
+        let joystickPressed = false;
+
+        joystick.addEventListener('pointerdown', (e) => { joystickPressed = true; });
+        window.addEventListener('pointerup', () => { 
+            joystickPressed = false; 
+            thumb.style.transform = `translate(0px, 0px)`;
+            moveForward = moveBackward = moveLeft = moveRight = false;
+        });
+
+        joystick.addEventListener('pointermove', (e) => {
+            if (!joystickPressed) return;
+            const rect = joystick.getBoundingClientRect();
+            const x = e.clientX - (rect.left + rect.width / 2);
+            const y = e.clientY - (rect.top + rect.height / 2);
+            const distance = Math.min(35, Math.hypot(x, y));
+            const angle = Math.atan2(y, x);
+            
+            const thumbX = Math.cos(angle) * distance;
+            const thumbY = Math.sin(angle) * distance;
+            thumb.style.transform = `translate(${thumbX}px, ${thumbY}px)`;
+
+            moveForward = thumbY < -10;
+            moveBackward = thumbY > 10;
+            moveLeft = thumbX < -10;
+            moveRight = thumbX > 10;
+        });
     </script>
-
 </body>
 </html>
